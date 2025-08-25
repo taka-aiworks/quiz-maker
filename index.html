@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>クイズメーカー</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>クイズメーカー</h1>
+    <nav class="tabs" role="tablist" aria-label="メインタブ">
+      <button class="tab active" data-tab="bank" role="tab" aria-selected="true">問題バンク</button>
+      <button class="tab" data-tab="generate" role="tab" aria-selected="false">クイズ生成</button>
+      <button class="tab" data-tab="play" role="tab" aria-selected="false">プレビュー/プレイ</button>
+      <button class="tab" data-tab="settings" role="tab" aria-selected="false">設定/入出力</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 問題バンク -->
+    <section id="panel-bank" class="panel active" role="tabpanel" aria-labelledby="tab-bank">
+      <h2>問題バンク</h2>
+
+      <form id="bank-form" class="card" autocomplete="off">
+        <input type="hidden" id="q-id" />
+        <div class="grid">
+          <label>カテゴリ
+            <input id="q-category" type="text" placeholder="例: 一般" />
+          </label>
+          <label>難易度
+            <select id="q-difficulty">
+              <option value="easy">easy</option>
+              <option value="normal" selected>normal</option>
+              <option value="hard">hard</option>
+            </select>
+          </label>
+        </div>
+
+        <label>問題文
+          <textarea id="q-text" rows="3" placeholder="問題文を入力"></textarea>
+        </label>
+
+        <div class="grid">
+          <label>選択肢1 <input id="q-c0" type="text" /></label>
+          <label>選択肢2 <input id="q-c1" type="text" /></label>
+          <label>選択肢3 <input id="q-c2" type="text" /></label>
+          <label>選択肢4 <input id="q-c3" type="text" /></label>
+        </div>
+
+        <label>正解（0〜3）
+          <select id="q-answer">
+            <option value="0">0</option><option value="1">1</option>
+            <option value="2">2</option><option value="3">3</option>
+          </select>
+        </label>
+
+        <label>タグ（カンマ区切り）
+          <input id="q-tags" type="text" placeholder="例: ことわざ,国旗" />
+        </label>
+
+        <div class="actions">
+          <button type="submit" id="btn-save">保存/更新</button>
+          <button type="button" id="btn-reset" class="secondary">リセット</button>
+        </div>
+      </form>
+
+      <div class="card">
+        <div class="grid">
+          <label>検索 <input id="bank-search" type="search" placeholder="キーワード" /></label>
+          <label>カテゴリ
+            <input id="bank-filter-cat" type="text" placeholder="任意（完全一致）" />
+          </label>
+          <label>難易度
+            <select id="bank-filter-diff">
+              <option value="">全て</option>
+              <option value="easy">easy</option>
+              <option value="normal">normal</option>
+              <option value="hard">hard</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="table-wrap">
+          <table id="bank-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>カテゴリ</th><th>難易度</th><th>問題文</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 生成 -->
+    <section id="panel-generate" class="panel" role="tabpanel">
+      <h2>クイズ生成</h2>
+      <form id="gen-form" class="card">
+        <div class="grid">
+          <label>カテゴリ（カンマ区切り）
+            <input id="gen-cats" type="text" placeholder="空なら全て" />
+          </label>
+          <label>難易度（カンマ区切り: easy,normal,hard）
+            <input id="gen-diffs" type="text" placeholder="空なら全て" />
+          </label>
+          <label>出題数
+            <input id="gen-count" type="number" min="1" value="5" />
+          </label>
+          <label>選択肢シャッフル
+            <input id="gen-shuffle" type="checkbox" />
+          </label>
+        </div>
+        <div class="actions">
+          <button type="submit">この条件で生成</button>
+        </div>
+        <p class="muted">現在のクイズ数：<span id="gen-current-count">0</span></p>
+      </form>
+    </section>
+
+    <!-- プレイ -->
+    <section id="panel-play" class="panel" role="tabpanel">
+      <h2>プレビュー/プレイ</h2>
+      <div id="play-card" class="card">
+        <div id="play-content">
+          <p class="muted">まずは「クイズ生成」で問題を用意してください。</p>
+        </div>
+        <div class="actions" id="play-actions" hidden>
+          <button id="btn-answer">回答する</button>
+          <button id="btn-next" class="secondary" hidden>次の問題</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 設定/入出力 -->
+    <section id="panel-settings" class="panel" role="tabpanel">
+      <h2>設定/入出力</h2>
+
+      <div class="card">
+        <div class="grid">
+          <label>テーマ
+            <select id="theme-select">
+              <option value="auto">自動</option>
+              <option value="light">ライト</option>
+              <option value="dark">ダーク</option>
+            </select>
+          </label>
+          <label>保存ステータス
+            <input id="storage-status" type="text" disabled />
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>JSONエクスポート</h3>
+        <textarea id="export-json" rows="6" readonly></textarea>
+        <div class="actions">
+          <button id="btn-export">エクスポート</button>
+          <button id="btn-copy" class="secondary">コピー</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>JSONインポート</h3>
+        <textarea id="import-json" rows="6" placeholder='[{"id":"...","category":"一般","difficulty":"easy","text":"...","choices":["A","B","C","D"],"answerIndex":0,"tags":["tag1"]}]'></textarea>
+        <div class="actions">
+          <button id="btn-import">インポート</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <small>© Quiz Maker</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
